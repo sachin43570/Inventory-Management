@@ -6,7 +6,7 @@ import {
   Boxes, IndianRupee, Users
 } from "lucide-react";
 
-const API = "http://localhost:5000/api";
+const API = "https://inventory-management-7n96.onrender.com/api";
 
 function App() {
 
