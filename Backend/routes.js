@@ -15,6 +15,7 @@ const {
 
   getSuppliers,
   createSupplier,
+  deleteSupplier,
 
   getDashboard
 } = require("./controllers");
@@ -23,7 +24,6 @@ const { protect } = require("./middleware");
 
 const router = express.Router();
 
-
 // ========================================
 // AUTH
 // ========================================
@@ -31,7 +31,6 @@ const router = express.Router();
 router.post("/auth/register", register);
 
 router.post("/auth/login", login);
-
 
 // ========================================
 // DASHBOARD
@@ -42,7 +41,6 @@ router.get(
   protect,
   getDashboard
 );
-
 
 // ========================================
 // PRODUCTS
@@ -72,7 +70,6 @@ router.delete(
   deleteProduct
 );
 
-
 // ========================================
 // STOCK
 // ========================================
@@ -95,7 +92,6 @@ router.delete(
   deleteTransaction
 );
 
-
 // ========================================
 // SUPPLIERS
 // ========================================
@@ -112,5 +108,10 @@ router.post(
   createSupplier
 );
 
-
+// NEW: delete a supplier
+router.delete(
+  "/suppliers/:id",
+  protect,
+  deleteSupplier
+);
 module.exports = router;

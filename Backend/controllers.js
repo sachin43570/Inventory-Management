@@ -427,6 +427,31 @@ const createSupplier = async (req, res) => {
 };
 
 
+// NEW: delete a supplier by id
+const deleteSupplier = async (req, res) => {
+  try {
+    const supplier = await Supplier.findByIdAndDelete(
+      req.params.id
+    );
+
+    if (!supplier) {
+      return res.status(404).json({
+        message: "Supplier not found"
+      });
+    }
+
+    res.json({
+      message: "Supplier deleted successfully"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+
 // ========================================
 // DASHBOARD
 // ========================================
@@ -494,6 +519,7 @@ module.exports = {
 
   getSuppliers,
   createSupplier,
+  deleteSupplier,
 
   getDashboard
 };

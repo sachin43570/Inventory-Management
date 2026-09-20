@@ -43,6 +43,7 @@ function App() {
   const [deleteTransactionTarget, setDeleteTransactionTarget] = useState(null); // holds the transaction pending delete confirmation
   const [showLogoutModal, setShowLogoutModal] = useState(false); // controls the logout confirmation popup
   const [detailView, setDetailView] = useState(null); // NEW: which stat card popup is open: "products" | "units" | "value" | "low"
+  const [deleteSupplierTarget, setDeleteSupplierTarget] = useState(null); // NEW: supplier waiting for delete confirmation
 
   // ========================================
   // STATE - FORM FIELDS
@@ -251,6 +252,19 @@ function App() {
       await loadDashboard();
     } catch (error) {
       alert(error.response?.data?.message || "Unable to add supplier");
+    }
+  };
+
+  // NEW: called only after the user confirms in the Delete Supplier modal below
+  const deleteSupplier = async () => {
+    if (!deleteSupplierTarget) return;
+    try {
+      await api.delete(`/suppliers/${deleteSupplierTarget._id}`);
+      setDeleteSupplierTarget(null);
+      await loadSuppliers();
+      await loadDashboard();
+    } catch (error) {
+      alert(error.response?.data?.message || "Unable to delete supplier");
     }
   };
 
@@ -607,6 +621,10 @@ function App() {
               <div className="supplier-grid">
                 {suppliers.map(supplier => (
                   <div className="supplier-card" key={supplier._id}>
+                    {/* NEW: delete icon, top right corner - opens the confirmation modal */}
+                    <button className="icon-button danger-icon supplier-delete" onClick={() => setDeleteSupplierTarget(supplier)}>
+                      <Trash2 size={16} />
+                    </button>
                     <div className="supplier-icon"><Users size={20} /></div>
                     <h3>{supplier.name}</h3>
                     <p>{supplier.company || "Independent Supplier"}</p>
@@ -773,6 +791,32 @@ function App() {
               <button className="primary-button logout-confirm" onClick={logout}>
                 Logout
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== NEW: DELETE SUPPLIER CONFIRMATION MODAL ====================
+           Shown only when deleteSupplierTarget is not null. CSS reused: .modal, .small-modal, .logout-confirm */}
+      {deleteSupplierTarget && (
+        <div className="modal-overlay">
+          <div className="modal small-modal">
+            <div className="modal-header">
+              <div>
+                <h2>Delete Supplier</h2>
+                <p>This action cannot be undone.</p>
+              </div>
+              <button className="close-button" onClick={() => setDeleteSupplierTarget(null)}>
+                <X size={20} />
+              </button>
+            </div>
+            <p>
+              Are you sure you want to delete <strong>{deleteSupplierTarget.name}</strong>
+              {deleteSupplierTarget.company ? ` (${deleteSupplierTarget.company})` : ""}?
+            </p>
+            <div className="form-actions">
+              <button type="button" className="secondary-button" onClick={() => setDeleteSupplierTarget(null)}>Cancel</button>
+              <button type="button" className="primary-button logout-confirm" onClick={deleteSupplier}>Delete</button>
             </div>
           </div>
         </div>

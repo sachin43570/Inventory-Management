@@ -181,6 +181,8 @@ td strong { color: var(--text); }
 .supplier-icon { width: 42px; height: 42px; display: flex; justify-content: center; align-items: center; background: #eff6ff; color: var(--primary); border-radius: 10px; margin-bottom: 17px; }
 .supplier-card h3 { font-size: 16px; margin-bottom: 5px; }
 .supplier-card > p { font-size: 12px; color: var(--muted); }
+.supplier-card { position: relative; }
+.supplier-delete { position: absolute; top: 16px; right: 16px; } /* NEW: delete icon, top right of each supplier card */
 .supplier-details { border-top: 1px solid var(--border); margin-top: 18px; padding-top: 15px; display: flex; flex-direction: column; gap: 7px; font-size: 12px; color: var(--muted); }
 
 /* ========================================
