@@ -42,6 +42,7 @@ function App() {
   const [showStockForm, setShowStockForm] = useState(false);
   const [deleteTransactionTarget, setDeleteTransactionTarget] = useState(null); // holds the transaction pending delete confirmation
   const [showLogoutModal, setShowLogoutModal] = useState(false); // controls the logout confirmation popup
+  const [detailView, setDetailView] = useState(null); // NEW: which stat card popup is open: "products" | "units" | "value" | "low"
 
   // ========================================
   // STATE - FORM FIELDS
@@ -263,6 +264,34 @@ function App() {
   );
 
   // ========================================
+  // NEW: DATA FOR THE STAT CARD POPUPS (computed from the products already loaded)
+  // ========================================
+  const formatINR = n => `₹${Number(n).toLocaleString("en-IN")}`;
+
+  const lowStockProducts = products.filter(p => p.quantity <= p.minimumStock);
+
+  const productsByUnits = [...products].sort((a, b) => b.quantity - a.quantity);
+
+  // groups products by category, with unit and value totals per category (biggest value first)
+  const categoryGroups = Object.values(
+    products.reduce((groups, p) => {
+      const key = p.category || "Uncategorized";
+      if (!groups[key]) groups[key] = { category: key, products: [], units: 0, value: 0 };
+      groups[key].products.push(p);
+      groups[key].units += Number(p.quantity);
+      groups[key].value += Number(p.quantity) * Number(p.price);
+      return groups;
+    }, {})
+  ).sort((a, b) => b.value - a.value);
+
+  const detailInfo = {
+    products: { title: "All Products", subtitle: `${products.length} products in your inventory` },
+    units: { title: "Units by Product", subtitle: `${dashboard.totalUnits} units in stock across all products` },
+    value: { title: "Inventory Value by Category", subtitle: `Total value ${formatINR(dashboard.inventoryValue)}` },
+    low: { title: "Low Stock Products", subtitle: "Quantity is at or below the minimum stock level" }
+  };
+
+  // ========================================
   // LOGIN / REGISTER SCREEN (shown only when no token)
   // Uses CSS classes: .auth-page, .auth-card, .auth-brand, .auth-subtitle, .auth-switch
   // ========================================
@@ -361,7 +390,7 @@ function App() {
         </div>
       </aside>
 
-      {/* ==================== MAIN CONTENT AREA - CSS: .main, .topbar, .content ==================== */}
+      {/* ==================== MAIN CONTENT AREA - CSS: .main (inventory background), .topbar, .content ==================== */}
       <main className="main">
         <header className="topbar">
           <button className="menu-button" onClick={() => setMobileMenu(true)}>
@@ -396,11 +425,12 @@ function App() {
                   Add Product
                 </button>
               </div>
+              {/* Each card is clickable and opens its detail popup (see detailView modal below) */}
               <div className="stats-grid">
-                <StatCard title="Total Products" value={dashboard.totalProducts} icon={Package} />
-                <StatCard title="Total Units" value={dashboard.totalUnits} icon={Boxes} />
-                <StatCard title="Inventory Value" value={`₹${Number(dashboard.inventoryValue).toLocaleString("en-IN")}`} icon={IndianRupee} />
-                <StatCard title="Low Stock" value={dashboard.lowStock} icon={AlertTriangle} warning />
+                <StatCard title="Total Products" value={dashboard.totalProducts} icon={Package} onClick={() => setDetailView("products")} />
+                <StatCard title="Total Units" value={dashboard.totalUnits} icon={Boxes} onClick={() => setDetailView("units")} />
+                <StatCard title="Inventory Value" value={formatINR(dashboard.inventoryValue)} icon={IndianRupee} onClick={() => setDetailView("value")} />
+                <StatCard title="Low Stock" value={dashboard.lowStock} icon={AlertTriangle} warning onClick={() => setDetailView("low")} />
               </div>
               <div className="dashboard-grid">
                 <div className="panel">
@@ -421,7 +451,7 @@ function App() {
                     </div>
                   </div>
                   <div className="status-list">
-                    {products.filter(p => p.quantity <= p.minimumStock).slice(0, 5).map(product => (
+                    {lowStockProducts.slice(0, 5).map(product => (
                       <div className="status-item" key={product._id}>
                         <div className="status-product">
                           <div className="product-icon"><Package size={17} /></div>
@@ -433,7 +463,7 @@ function App() {
                         <span className="badge danger">{product.quantity} left</span>
                       </div>
                     ))}
-                    {products.filter(p => p.quantity <= p.minimumStock).length === 0 && (
+                    {lowStockProducts.length === 0 && (
                       <div className="empty">All products have healthy stock levels.</div>
                     )}
                   </div>
@@ -693,10 +723,9 @@ function App() {
         </div>
       )}
 
-      {/* ==================== DELETE TRANSACTION CONFIRMATION MODAL (NEW FEATURE) ====================
+      {/* ==================== DELETE TRANSACTION CONFIRMATION MODAL ====================
            Shown only when deleteTransactionTarget is not null.
-           CSS reused: .modal, .small-modal, .modal-header, .form-grid, .form-actions
-           New CSS added just for this: .danger-icon (already existed, reused on Delete button) */}
+           CSS reused: .modal, .small-modal, .modal-header, .form-grid, .form-actions */}
       {deleteTransactionTarget && (
         <div className="modal-overlay">
           <div className="modal small-modal">
@@ -723,9 +752,8 @@ function App() {
         </div>
       )}
 
-      {/* ==================== LOGOUT CONFIRMATION MODAL (NEW FEATURE) ====================
-           Shown only when showLogoutModal is true.
-           New CSS added just for this: .logout-confirm (red button, see style.css) */}
+      {/* ==================== LOGOUT CONFIRMATION MODAL ====================
+           Shown only when showLogoutModal is true. CSS: .logout-confirm (red button) */}
       {showLogoutModal && (
         <div className="modal-overlay">
           <div className="modal small-modal">
@@ -750,6 +778,134 @@ function App() {
         </div>
       )}
 
+      {/* ==================== NEW: STAT CARD DETAIL POPUP ====================
+           Opens when a Dashboard stat card is clicked (detailView = "products" | "units" | "value" | "low").
+           Click the dark backdrop or the X to close. CSS: .detail-modal, .detail-table, .category-block, .category-head */}
+      {detailView && (
+        <div className="modal-overlay" onClick={() => setDetailView(null)}>
+          <div className="modal detail-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2>{detailInfo[detailView].title}</h2>
+                <p>{detailInfo[detailView].subtitle}</p>
+              </div>
+              <button className="close-button" onClick={() => setDetailView(null)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Total Products: every product with its SKU, category and supplier */}
+            {detailView === "products" && (
+              <div className="table-wrapper">
+                <table className="detail-table">
+                  <thead>
+                    <tr><th>PRODUCT</th><th>SKU</th><th>CATEGORY</th><th>SUPPLIER</th></tr>
+                  </thead>
+                  <tbody>
+                    {products.map(p => (
+                      <tr key={p._id}>
+                        <td><strong>{p.name}</strong></td>
+                        <td>{p.sku}</td>
+                        <td>{p.category}</td>
+                        <td>{p.supplier}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {products.length === 0 && <div className="empty">No products yet.</div>}
+              </div>
+            )}
+
+            {/* Total Units: units per product, highest first */}
+            {detailView === "units" && (
+              <div className="table-wrapper">
+                <table className="detail-table">
+                  <thead>
+                    <tr><th>PRODUCT</th><th>SKU</th><th>UNITS IN STOCK</th><th>MINIMUM</th></tr>
+                  </thead>
+                  <tbody>
+                    {productsByUnits.map(p => (
+                      <tr key={p._id}>
+                        <td><strong>{p.name}</strong></td>
+                        <td>{p.sku}</td>
+                        <td>{p.quantity}</td>
+                        <td>{p.minimumStock}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {products.length === 0 && <div className="empty">No products yet.</div>}
+              </div>
+            )}
+
+            {/* Inventory Value: one block per category with price x units per product and low stock badges */}
+            {detailView === "value" && (
+              <>
+                {categoryGroups.map(group => (
+                  <div className="category-block" key={group.category}>
+                    <div className="category-head">
+                      <strong>{group.category}</strong>
+                      <span>{group.products.length} products · {group.units} units · {formatINR(group.value)}</span>
+                    </div>
+                    <div className="table-wrapper">
+                      <table className="detail-table">
+                        <thead>
+                          <tr><th>PRODUCT</th><th>PRICE</th><th>UNITS</th><th>VALUE</th><th>STATUS</th></tr>
+                        </thead>
+                        <tbody>
+                          {group.products.map(p => (
+                            <tr key={p._id}>
+                              <td><strong>{p.name}</strong></td>
+                              <td>{formatINR(p.price)}</td>
+                              <td>{p.quantity}</td>
+                              <td>{formatINR(p.quantity * p.price)}</td>
+                              <td>
+                                {p.quantity <= p.minimumStock
+                                  ? <span className="badge danger">Low Stock</span>
+                                  : <span className="badge success">In Stock</span>}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+                {categoryGroups.length === 0 && <div className="empty">No products yet.</div>}
+              </>
+            )}
+
+            {/* Low Stock: only products at or below their minimum stock */}
+            {detailView === "low" && (
+              <div className="table-wrapper">
+                <table className="detail-table">
+                  <thead>
+                    <tr><th>PRODUCT</th><th>SKU</th><th>CATEGORY</th><th>IN STOCK</th><th>MINIMUM</th><th>STATUS</th></tr>
+                  </thead>
+                  <tbody>
+                    {lowStockProducts.map(p => (
+                      <tr key={p._id}>
+                        <td><strong>{p.name}</strong></td>
+                        <td>{p.sku}</td>
+                        <td>{p.category}</td>
+                        <td>{p.quantity}</td>
+                        <td>{p.minimumStock}</td>
+                        <td>
+                          <span className="badge danger">
+                            {Number(p.quantity) === 0 ? "Out of stock" : "Low Stock"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {lowStockProducts.length === 0 && <div className="empty">All products have healthy stock levels.</div>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -767,11 +923,12 @@ function Input({ label, name, value, onChange, type = "text", placeholder }) {
 }
 
 // ========================================
-// STAT CARD COMPONENT (used on Dashboard page - Total Products, Total Units, etc.)
+// STAT CARD COMPONENT (Dashboard: Total Products, Total Units, etc.)
+// Now a button, so the whole card (icon included) is clickable and keyboard accessible
 // ========================================
-function StatCard({ title, value, icon: Icon, warning }) {
+function StatCard({ title, value, icon: Icon, warning, onClick }) {
   return (
-    <div className="stat-card">
+    <button type="button" className="stat-card clickable" onClick={onClick}>
       <div className="stat-content">
         <span>{title}</span>
         <strong>{value}</strong>
@@ -779,7 +936,7 @@ function StatCard({ title, value, icon: Icon, warning }) {
       <div className={warning ? "stat-icon warning" : "stat-icon"}>
         <Icon size={21} />
       </div>
-    </div>
+    </button>
   );
 }
 

@@ -56,8 +56,18 @@ button { cursor: pointer; }
 
 /* ========================================
    MAIN (right side: topbar + page content)
+   NEW: inventory-themed background for all 4 pages - a soft blue wash at the top
+   plus a faint pattern of warehouse boxes (inline SVG, no image files needed).
+   Cards, tables and panels stay white on top of it.
 ======================================== */
-.main { margin-left: 250px; width: calc(100% - 250px); }
+.main {
+  margin-left: 250px;
+  width: calc(100% - 250px);
+  min-height: 100vh;
+  background-image:
+    linear-gradient(180deg, rgba(37, 99, 235, 0.06), transparent 300px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cg fill='none' stroke='%232563eb' stroke-opacity='.10' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath d='M70 40l22 12v26L70 90 48 78V52z'/%3E%3Cpath d='M48 52l22 12 22-12M70 64v26'/%3E%3Cpath d='M0 128h30M110 128h30M0 134h30M110 134h30'/%3E%3C/g%3E%3C/svg%3E");
+}
 .topbar { height: 82px; background: white; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 35px; position: sticky; top: 0; z-index: 20; }
 .topbar h2 { font-size: 18px; margin-bottom: 3px; }
 .topbar p { font-size: 12px; color: var(--muted); }
@@ -80,15 +90,18 @@ button { cursor: pointer; }
 .secondary-button { padding: 11px 17px; border: 1px solid var(--border); background: white; border-radius: 8px; font-weight: 600; color: var(--text); }
 .full-button { width: 100%; padding: 13px; margin-top: 8px; }
 
-/* ---- NEW: Logout confirm button (red) - used in Logout modal in App.jsx ---- */
+/* ---- Logout confirm button (red) - used in Logout modal in App.jsx ---- */
 .logout-confirm { background: var(--red); }
 .logout-confirm:hover { background: #b91c1c; transform: translateY(-1px); }
 
 /* ========================================
    STATS (4 cards on Dashboard: Total Products, Total Units, etc.)
+   NEW: .clickable makes the card a button that opens its detail popup
 ======================================== */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 22px; }
 .stat-card { background: white; border: 1px solid var(--border); border-radius: 14px; padding: 22px; display: flex; justify-content: space-between; align-items: center; }
+.stat-card.clickable { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; transition: 0.2s; }
+.stat-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06); border-color: #cbd5e1; }
 .stat-content span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 9px; }
 .stat-content strong { display: block; font-size: 25px; }
 .stat-icon { width: 44px; height: 44px; border-radius: 11px; display: flex; align-items: center; justify-content: center; background: #dbeafe; color: var(--primary); }
@@ -182,7 +195,7 @@ td strong { color: var(--text); }
 
 /* ========================================
    MODAL (shared wrapper for ALL popups: Product, Stock, Supplier,
-   Delete Transaction confirm, Logout confirm)
+   Delete Transaction confirm, Logout confirm, Stat card details)
 ======================================== */
 .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display: flex; justify-content: center; align-items: center; padding: 20px; z-index: 100; }
 .modal { width: 650px; max-width: 100%; max-height: 90vh; overflow-y: auto; background: white; border-radius: 16px; padding: 27px; box-shadow: 0 25px 70px rgba(0, 0, 0, 0.2); }
@@ -191,6 +204,16 @@ td strong { color: var(--text); }
 .modal-header h2 { font-size: 20px; margin-bottom: 5px; }
 .modal-header p { color: var(--muted); font-size: 12px; }
 .close-button { border: 0; background: #f1f5f9; width: 34px; height: 34px; border-radius: 8px; display: flex; justify-content: center; align-items: center; }
+
+/* ========================================
+   NEW: STAT CARD DETAIL POPUP (Total Products / Units / Inventory Value / Low Stock)
+======================================== */
+.detail-modal { width: 780px; }
+.detail-table { min-width: 0; }
+.detail-table th, .detail-table td { padding: 12px 14px; }
+.category-block { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 18px; }
+.category-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; padding: 14px 16px; background: #fafbfc; }
+.category-head span { font-size: 12px; color: var(--muted); }
 
 /* ========================================
    EMPTY STATE (shown when a list/table has no data)
