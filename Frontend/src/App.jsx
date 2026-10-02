@@ -5,9 +5,7 @@ import {
   Plus, Trash2, Edit, Search, LogOut, Menu, X, AlertTriangle,
   Boxes, IndianRupee, Users
 } from "lucide-react";
-
 const API = "https://inventory-management-7n96.onrender.com/api";
-
 function App() {
 
   // ========================================
@@ -50,20 +48,16 @@ function App() {
   // ========================================
   const [editingProduct, setEditingProduct] = useState(null);
   const [stockType, setStockType] = useState("IN");
-
   const [productForm, setProductForm] = useState({
-    name: "", sku: "", category: "", price: "", quantity: "", minimumStock: 10, supplier: ""
+    name: "", productCode: "", category: "", price: "", quantity: "", minimumStock: 10, supplier: ""
   });
-
   const [supplierForm, setSupplierForm] = useState({ name: "", email: "", phone: "", company: "" });
-
   const [stockForm, setStockForm] = useState({ productId: "", quantity: "", note: "" });
 
   // ========================================
   // AXIOS CONFIG (attaches auth token to every request)
   // ========================================
   const api = axios.create({ baseURL: API });
-
   api.interceptors.request.use(config => {
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
@@ -72,7 +66,6 @@ function App() {
   // ========================================
   // LOAD DATA ON LOGIN
   // ========================================
-
   useEffect(() => {
     if (!token) return;
     loadDashboard();
@@ -80,7 +73,6 @@ function App() {
     loadSuppliers();
     loadTransactions();
   }, [token]);
-
   const loadDashboard = async () => {
     try {
       const response = await api.get("/dashboard");
@@ -89,7 +81,6 @@ function App() {
       console.error(error);
     }
   };
-
   const loadProducts = async () => {
     try {
       const response = await api.get("/products");
@@ -98,7 +89,6 @@ function App() {
       console.error(error);
     }
   };
-
   const loadSuppliers = async () => {
     try {
       const response = await api.get("/suppliers");
@@ -107,7 +97,6 @@ function App() {
       console.error(error);
     }
   };
-
   const loadTransactions = async () => {
     try {
       const response = await api.get("/transactions");
@@ -120,7 +109,6 @@ function App() {
   // ========================================
   // AUTH ACTIONS
   // ========================================
-
   const handleAuth = async event => {
     event.preventDefault();
     try {
@@ -133,7 +121,6 @@ function App() {
       alert(error.response?.data?.message || "Authentication failed");
     }
   };
-
   // logout: called only after user confirms in the Logout modal below
   const logout = () => {
     localStorage.removeItem("token");
@@ -147,7 +134,6 @@ function App() {
   const handleProductChange = event => {
     setProductForm({ ...productForm, [event.target.name]: event.target.value });
   };
-
   const saveProduct = async event => {
     event.preventDefault();
     try {
@@ -165,21 +151,18 @@ function App() {
       alert(error.response?.data?.message || "Unable to save product");
     }
   };
-
   const resetProductForm = () => {
-    setProductForm({ name: "", sku: "", category: "", price: "", quantity: "", minimumStock: 10, supplier: "" });
+    setProductForm({ name: "", productCode: "", category: "", price: "", quantity: "", minimumStock: 10, supplier: "" });
   };
-
   const editProduct = product => {
     setEditingProduct(product);
     setProductForm({
-      name: product.name, sku: product.sku, category: product.category,
+      name: product.name, productCode: product.productCode, category: product.category,
       price: product.price, quantity: product.quantity,
       minimumStock: product.minimumStock, supplier: product.supplier
     });
     setShowProductForm(true);
   };
-
   // uses plain window.confirm (no custom modal) - this is the OLD style delete for products
   const deleteProduct = async id => {
     const confirmed = window.confirm("Are you sure you want to delete this product?");
@@ -219,17 +202,15 @@ function App() {
   const confirmDeleteTransaction = transaction => {
     setDeleteTransactionTarget(transaction); // opens the modal, stores which row is targeted
   };
-
   const cancelDeleteTransaction = () => {
     setDeleteTransactionTarget(null); // closes the modal without deleting
   };
-
   const deleteTransaction = async () => {
     if (!deleteTransactionTarget) return;
     try {
       await api.delete(`/transactions/${deleteTransactionTarget._id}`);
       setDeleteTransactionTarget(null);
-      await loadProducts();     // refresh because backend adjusts product quantity
+      await loadProducts(); // refresh because backend adjusts product quantity
       await loadDashboard();
       await loadTransactions();
     } catch (error) {
@@ -243,7 +224,6 @@ function App() {
   const handleSupplierChange = event => {
     setSupplierForm({ ...supplierForm, [event.target.name]: event.target.value });
   };
-
   const saveSupplier = async event => {
     event.preventDefault();
     try {
@@ -256,7 +236,6 @@ function App() {
       alert(error.response?.data?.message || "Unable to add supplier");
     }
   };
-
   // NEW: called only after the user confirms in the Delete Supplier modal below
   const deleteSupplier = async () => {
     if (!deleteSupplierTarget) return;
@@ -275,7 +254,7 @@ function App() {
   // ========================================
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(search.toLowerCase()) ||
-    product.sku.toLowerCase().includes(search.toLowerCase()) ||
+    (product.productCode || "").toLowerCase().includes(search.toLowerCase()) ||
     product.category.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -283,11 +262,8 @@ function App() {
   // NEW: DATA FOR THE STAT CARD POPUPS (computed from the products already loaded)
   // ========================================
   const formatINR = n => `₹${Number(n).toLocaleString("en-IN")}`;
-
   const lowStockProducts = products.filter(p => p.quantity <= p.minimumStock);
-
   const productsByUnits = [...products].sort((a, b) => b.quantity - a.quantity);
-
   // groups products by category, with unit and value totals per category (biggest value first)
   const categoryGroups = Object.values(
     products.reduce((groups, p) => {
@@ -299,7 +275,6 @@ function App() {
       return groups;
     }, {})
   ).sort((a, b) => b.value - a.value);
-
   const detailInfo = {
     products: { title: "All Products", subtitle: `${products.length} products in your inventory` },
     units: { title: "Units by Product", subtitle: `${dashboard.totalUnits} units in stock across all products` },
@@ -425,7 +400,6 @@ function App() {
             <div className="avatar">SF</div>
           </div>
         </header>
-
         <section className="content">
 
           {/* ==================== DASHBOARD PAGE - CSS: .stats-grid, .dashboard-grid ==================== */}
@@ -473,7 +447,7 @@ function App() {
                           <div className="product-icon"><Package size={17} /></div>
                           <div>
                             <strong>{product.name}</strong>
-                            <span>{product.sku}</span>
+                            <span>{product.productCode}</span>
                           </div>
                         </div>
                         <span className="badge danger">{product.quantity} left</span>
@@ -533,7 +507,7 @@ function App() {
                               </div>
                             </div>
                           </td>
-                          <td>{product.sku}</td>
+                          <td>{product.productCode}</td>
                           <td>{product.category}</td>
                           <td>₹{Number(product.price).toLocaleString("en-IN")}</td>
                           <td>{product.quantity}</td>
@@ -640,7 +614,6 @@ function App() {
               </div>
             </>
           )}
-
         </section>
       </main>
 
@@ -659,7 +632,7 @@ function App() {
             </div>
             <form className="form-grid" onSubmit={saveProduct}>
               <Input label="Product Name" name="name" value={productForm.name} onChange={handleProductChange} placeholder="MacBook Air" />
-              <Input label="SKU" name="sku" value={productForm.sku} onChange={handleProductChange} placeholder="LAP-001" />
+              <Input label="Product Code" name="productCode" value={productForm.productCode} onChange={handleProductChange} placeholder="LAP-001" />
               <Input label="Category" name="category" value={productForm.category} onChange={handleProductChange} placeholder="Electronics" />
               <Input label="Price" name="price" type="number" value={productForm.price} onChange={handleProductChange} placeholder="50000" />
               <Input label="Quantity" name="quantity" type="number" value={productForm.quantity} onChange={handleProductChange} placeholder="20" />
@@ -839,19 +812,18 @@ function App() {
                 <X size={20} />
               </button>
             </div>
-
-            {/* Total Products: every product with its SKU, category and supplier */}
+            {/* Total Products: every product with its Product Code, category and supplier */}
             {detailView === "products" && (
               <div className="table-wrapper">
                 <table className="detail-table">
                   <thead>
-                    <tr><th>PRODUCT</th><th>SKU</th><th>CATEGORY</th><th>SUPPLIER</th></tr>
+                    <tr><th>PRODUCT</th><th>PRODUCT CODE</th><th>CATEGORY</th><th>SUPPLIER</th></tr>
                   </thead>
                   <tbody>
                     {products.map(p => (
                       <tr key={p._id}>
                         <td><strong>{p.name}</strong></td>
-                        <td>{p.sku}</td>
+                        <td>{p.productCode}</td>
                         <td>{p.category}</td>
                         <td>{p.supplier}</td>
                       </tr>
@@ -861,19 +833,18 @@ function App() {
                 {products.length === 0 && <div className="empty">No products yet.</div>}
               </div>
             )}
-
             {/* Total Units: units per product, highest first */}
             {detailView === "units" && (
               <div className="table-wrapper">
                 <table className="detail-table">
                   <thead>
-                    <tr><th>PRODUCT</th><th>SKU</th><th>UNITS IN STOCK</th><th>MINIMUM</th></tr>
+                    <tr><th>PRODUCT</th><th>PRODUCT CODE</th><th>UNITS IN STOCK</th><th>MINIMUM</th></tr>
                   </thead>
                   <tbody>
                     {productsByUnits.map(p => (
                       <tr key={p._id}>
                         <td><strong>{p.name}</strong></td>
-                        <td>{p.sku}</td>
+                        <td>{p.productCode}</td>
                         <td>{p.quantity}</td>
                         <td>{p.minimumStock}</td>
                       </tr>
@@ -883,7 +854,6 @@ function App() {
                 {products.length === 0 && <div className="empty">No products yet.</div>}
               </div>
             )}
-
             {/* Inventory Value: one block per category with price x units per product and low stock badges */}
             {detailView === "value" && (
               <>
@@ -920,7 +890,6 @@ function App() {
                 {categoryGroups.length === 0 && <div className="empty">No products yet.</div>}
               </>
             )}
-
             {/* Low Stock: only products at or below their minimum stock */}
             {detailView === "low" && (
               <div className="table-wrapper">
@@ -932,7 +901,7 @@ function App() {
                     {lowStockProducts.map(p => (
                       <tr key={p._id}>
                         <td><strong>{p.name}</strong></td>
-                        <td>{p.ProductCode}</td>
+                        <td>{p.productCode}</td>
                         <td>{p.category}</td>
                         <td>{p.quantity}</td>
                         <td>{p.minimumStock}</td>
@@ -951,7 +920,6 @@ function App() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
@@ -1044,5 +1012,4 @@ function TransactionTable({ transactions = [], onDelete }) {
     </div>
   );
 }
-
 export default App;

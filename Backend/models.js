@@ -41,7 +41,7 @@ const productSchema = new mongoose.Schema(
       trim: true
     },
 
-    sku: {
+    productCode: {
       type: String,
       required: true,
       unique: true,

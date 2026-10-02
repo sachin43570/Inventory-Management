@@ -145,7 +145,7 @@ const createProduct = async (req, res) => {
   try {
     const {
       name,
-      sku,
+      productCode,
       category,
       price,
       quantity,
@@ -154,18 +154,18 @@ const createProduct = async (req, res) => {
     } = req.body;
 
     const existingProduct = await Product.findOne({
-      sku
+      productCode
     });
 
     if (existingProduct) {
       return res.status(400).json({
-        message: "SKU already exists"
+        message: "Product code already exists"
       });
     }
 
     const product = await Product.create({
       name,
-      sku,
+      productCode,
       category,
       price,
       quantity,
