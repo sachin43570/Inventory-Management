@@ -72,6 +72,7 @@ function App() {
   // ========================================
   // LOAD DATA ON LOGIN
   // ========================================
+
   useEffect(() => {
     if (!token) return;
     loadDashboard();
@@ -119,6 +120,7 @@ function App() {
   // ========================================
   // AUTH ACTIONS
   // ========================================
+
   const handleAuth = async event => {
     event.preventDefault();
     try {
@@ -420,7 +422,7 @@ function App() {
             <p>Manage your inventory efficiently</p>
           </div>
           <div className="topbar-user">
-            <div className="avatar">U</div>
+            <div className="avatar">SF</div>
           </div>
         </header>
 
@@ -511,7 +513,7 @@ function App() {
                     <thead>
                       <tr>
                         <th>PRODUCT</th>
-                        <th>SKU</th>
+                        <th>PRODUCT CODE</th>
                         <th>CATEGORY</th>
                         <th>PRICE</th>
                         <th>STOCK</th>
@@ -924,13 +926,13 @@ function App() {
               <div className="table-wrapper">
                 <table className="detail-table">
                   <thead>
-                    <tr><th>PRODUCT</th><th>SKU</th><th>CATEGORY</th><th>IN STOCK</th><th>MINIMUM</th><th>STATUS</th></tr>
+                    <tr><th>PRODUCT</th><th>PRODUCT CODE</th><th>CATEGORY</th><th>IN STOCK</th><th>MINIMUM</th><th>STATUS</th></tr>
                   </thead>
                   <tbody>
                     {lowStockProducts.map(p => (
                       <tr key={p._id}>
                         <td><strong>{p.name}</strong></td>
-                        <td>{p.sku}</td>
+                        <td>{p.Product Code}</td>
                         <td>{p.category}</td>
                         <td>{p.quantity}</td>
                         <td>{p.minimumStock}</td>
