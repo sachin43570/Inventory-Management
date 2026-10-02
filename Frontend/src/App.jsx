@@ -932,7 +932,7 @@ function App() {
                     {lowStockProducts.map(p => (
                       <tr key={p._id}>
                         <td><strong>{p.name}</strong></td>
-                        <td>{p.Product Code}</td>
+                        <td>{p.ProductCode}</td>
                         <td>{p.category}</td>
                         <td>{p.quantity}</td>
                         <td>{p.minimumStock}</td>
